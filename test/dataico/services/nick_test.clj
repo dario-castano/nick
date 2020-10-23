@@ -36,6 +36,9 @@
         (io/delete-file nonexistent_invoice)) 
       (is (thrown? java.io.FileNotFoundException 
                    (nick/load-invoice nonexistent_invoice))))
+    (testing "Wrong kind of file should fail" 
+      (is (thrown? java.lang.RuntimeException 
+                   (nick/load-invoice executable_file))))
     (testing "Corrupt file should fail" 
       (is (thrown? java.lang.RuntimeException
                    (nick/load-invoice corrupt_invoice))))
@@ -45,6 +48,6 @@
     (testing "Loaded EDN should return correct data"
       (is (= (:status (nick/load-invoice ok_edn)) (:status ok_map))))
     (testing "Nested EDN should return correct data"
-      (is (= (data/diff (nick/load-invoice multi_edn) (multi_map)) 
-             ([nil, nil, multi_map]))))
+      (is (= (data/diff (nick/load-invoice multi_edn) multi_map) 
+             [nil, nil, multi_map])))
     ))
