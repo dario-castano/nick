@@ -2,7 +2,8 @@
   (:require
   [clojure.edn :as edn])
 ;   [dataico.services.workbook :as dw])
-  (:import (java.text SimpleDateFormat)))
+  (:import (java.text SimpleDateFormat)
+           (java.lang AssertionError)))
 
 (defrecord SiigoProperties [title value bgcolor])
 
@@ -43,7 +44,9 @@
 
   "
   [date]
-  (str (.format (SimpleDateFormat. "dd/MM/yyyy") date)))
+  (->> (prn-str date)
+       (edn/read-string)
+       (.format (SimpleDateFormat. "dd/MM/yyyy"))))
 
 
 (defn load-invoice
@@ -80,10 +83,12 @@
 
   "
   [data item]
-  (when-not (and 
-             (instance? clojure.lang.PersistentHashMap data)
-             (instance? clojure.lang.PersistentVector item))
-    (throw java.lang.IllegalArgumentException))
+  (when-not 
+   (instance? clojure.lang.PersistentHashMap data)
+    (throw (AssertionError. "data is not a clojure.lang.PersistentHashMap")))
+  (when-not 
+   (instance? clojure.lang.PersistentVector item)
+    (throw (AssertionError. "item is not a clojure.lang.PersistentVector")))          
   (SiigoElement.
    (SiigoProperties.
     "Tipo de comprobante"
@@ -107,7 +112,7 @@
     :blue-bg)
    (SiigoProperties.
     "Fecha de elaboración"
-    (:invoice/issue-date data)
+    (common-date (:invoice/issue-date data))
     :red-bg)
    (SiigoProperties.
     "Nombre contacto"
@@ -179,7 +184,7 @@
     :blue-bg)
    (SiigoProperties.
     "Fecha Vencimiento"
-    (:invoice/payment-date data)
+    (common-date (:invoice/payment-date data))
     :blue-bg)
    (SiigoProperties.
     "Observaciones"

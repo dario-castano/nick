@@ -4,6 +4,48 @@
             [clojure.java.io :as io]
             [clojure.data :as data]))
 
+(def siigo-element-kws '(:t-comprobante
+                        :consecutivo
+                        :nro-docid
+                        :sucursal
+                        :centro-costo
+                        :fecha-elaboracion
+                        :nombre-contacto
+                        :email-contacto
+                        :cod-producto
+                        :descr-producto
+                        :id-vendedor
+                        :bodega
+                        :cantidad
+                        :vr-unitario
+                        :vr-descuento
+                        :base-aiu
+                        :imp-cargo
+                        :imp-cargo2
+                        :imp-retencion
+                        :reteica-reteiva
+                        :tipo-fpago
+                        :vr-fpago
+                        :medio-pago
+                        :fecha-vencimiento
+                        :observaciones))
+
+(def sample-map {:invoice/number "A0000",
+                 :invoice/customer {:party/identification "123456",
+                                    :party/company-name "COMPANY",
+                                    :party/email "mail@mail.com"},
+                 :entity/company {:company/party {:party/identification "000000000"}},
+                 :invoice/issue-date #inst "2020-12-12",
+                 :invoice/payment-date #inst "2020-12-12"
+                 :invoice/payment-means-type "1",
+                 :invoice/payment-means "47",
+                 :doc.analytics/total 10000,
+                 :invoice/items [{:invoice-item/product {:product/sku "EM",
+                                                         :product/precise-price 100},
+                                  :invoice-item/description "DESCRIPTION",
+                                  :invoice-item/precise-quantity 1}]
+                 })
+
 (deftest load-invoice-test
   (let [executable_file "testdata/an_executable"
         corrupt_invoice "testdata/corrupt_invoice.edn"
@@ -28,7 +70,7 @@
     (testing "No args should fail" 
       (is (thrown? clojure.lang.ArityException 
                    (nick/load-invoice))))
-    (testing "Wrong args should fail" 
+    (testing "Wrong number of args should fail" 
       (is (thrown? clojure.lang.ArityException 
                    (nick/load-invoice "invoice1" "invoice2"))))
     (testing "Nonexistent file should fail"
@@ -52,6 +94,45 @@
              [nil, nil, multi_map])))
     ))
 
-(deftest siigo-map-test)
+(deftest siigo-map-test
+  (let [sample_date #inst "1985-04-12T23:20:50.52Z"
+        sample_uuid #uuid "c1197d5a-01e7-47b5-8697-69d5d906a69f"
+        invoice-items (:invoice/items sample-map)
+        siigo-elem-kwcount (count siigo-element-kws)]
+    
+    (testing "No args should fail" 
+      (is (thrown? clojure.lang.ArityException 
+                   (nick/siigo-map))))
+    (testing "Wrong number of args should fail" 
+      (is (thrown? clojure.lang.ArityException 
+                   (nick/siigo-map "a")))
+      (is (thrown? clojure.lang.ArityException
+                   (nick/siigo-map 1 2 3))))
+    (testing "Wrong type args should fail" 
+      (is (thrown? java.lang.AssertionError 
+                   (nick/siigo-map sample_date 0)))
+      (is (thrown? java.lang.AssertionError
+                   (nick/siigo-map "a" sample_uuid)))
+      (is (thrown? java.lang.AssertionError
+                   (nick/siigo-map sample-map 0)))
+      (is (thrown? java.lang.AssertionError
+                   (nick/siigo-map 0 (:invoice/items sample-map)))))
+    (testing "Correct args should return a SiigoElement" 
+      (is (= 
+           (type (nick/siigo-map sample-map invoice-items))
+           nick/SiigoElement)))
+    (testing "SiigoElement should have right num of keywords" 
+      (is (= siigo-elem-kwcount 
+             (-> (nick/siigo-map sample-map invoice-items)
+                 keys
+                 count))))
+    (testing "SiigoElement should have the correct keywords" 
+      (is (= 
+           (keys (nick/siigo-map sample-map invoice-items)) 
+           siigo-element-kws)))
+    (testing "Each element in SiigoElement should be a SiigoProperty" ())
+    (testing "Nested SiigoProperties should have right num of keywords" ())
+    (testing "Should be populating correct values" ())
+   ))
 
 (deftest siigo-row-test)
