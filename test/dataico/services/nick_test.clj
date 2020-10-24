@@ -3,7 +3,7 @@
             [dataico.services.nick :as nick]
             [clojure.java.io :as io]
             [clojure.data :as data])
-  (:import (dataico.services.nick SiigoElement SiigoProperties)))
+  (:import (dataico.services.nick SiigoElement)))
 
 (def siigo-element-kws '(:t-comprobante
                         :consecutivo
@@ -30,8 +30,6 @@
                         :medio-pago
                         :fecha-vencimiento
                         :observaciones))
-
-(def siigo-property-kws '(:title :value :bgcolor))
 
 (def sample-map {:invoice/number "A0000",
                  :invoice/customer {:party/identification "123456",
@@ -160,18 +158,8 @@
       (is (= 
            (keys (nick/siigo-map sample-map invoice-item)) 
            siigo-element-kws)))
-    (testing "Each element in SiigoElement should be a SiigoProperty"
-      (is (every? #(= % SiigoProperties)
-                  (map type (vals
-                              (nick/siigo-map sample-map invoice-item))))))
-    (testing "Nested SiigoProperties should have right num of keywords"
-      (is (every? #(= % (count siigo-property-kws))
-                  (->> (vals (nick/siigo-map sample-map invoice-item))
-                       (map keys)
-                       (map count)))))
     (testing "Should be populating correct values"
-      (let [smap (nick/siigo-map sample-map invoice-item)
-            testdata (zipmap (keys smap) (map :value (vals smap)))]
+      (let [testdata (nick/siigo-map sample-map invoice-item)]
         (is (= (data/diff testdata ok-map) [nil, nil, ok-map]))
         ))
    ))

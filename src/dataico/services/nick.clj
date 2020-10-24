@@ -1,11 +1,9 @@
 (ns dataico.services.nick
   (:require
-  [clojure.edn :as edn])
-;   [dataico.services.workbook :as dw])
+  [clojure.edn :as edn]
+  [dataico.services.workbook :as dw])
   (:import (java.text SimpleDateFormat)
            (java.lang AssertionError)))
-
-(defrecord SiigoProperties [title value bgcolor])
 
 (defrecord SiigoElement [t-comprobante
                          consecutivo
@@ -79,7 +77,7 @@
            (clojure.lang.PersistentVector)
 
   Returns
-  A SiigoElement map with SiigoProperties elements inside
+  A SiigoElement map
 
   "
   [data item]
@@ -90,106 +88,32 @@
    (instance? clojure.lang.IPersistentMap item)
     (throw (AssertionError. "item is not a clojure.lang.IPersistentMap")))          
   (SiigoElement.
-   (SiigoProperties.
-    "Tipo de comprobante"
     "" ; TODO: Set this
-    :red-bg)
-   (SiigoProperties.
-    "Consecutivo"
     (:invoice/number data)
-    :red-bg)
-   (SiigoProperties.
-    "CC / Nit Cliente"
     (get-in data [:invoice/customer :party/identification])
-    :red-bg)
-   (SiigoProperties.
-    "Sucursal"
     "" ; TODO: Set this
-    :blue-bg)
-   (SiigoProperties.
-    "Centro de costo"
     "" ; TODO: Set this
-    :blue-bg)
-   (SiigoProperties.
-    "Fecha de elaboración"
     (common-date (:invoice/issue-date data))
-    :red-bg)
-   (SiigoProperties.
-    "Nombre contacto"
     (get-in data [:invoice/customer :party/company-name])
-    :blue-bg)
-   (SiigoProperties.
-    "Email contacto"
     (get-in data [:invoice/customer :party/email])
-    :blue-bg)
-   (SiigoProperties.
-    "Código producto"
     (get-in item [:invoice-item/product :product/sku])
-    :red-bg)
-   (SiigoProperties.
-    "Descripción producto"
     (:invoice-item/description item)
-    :blue-bg)
-   (SiigoProperties.
-    "Identificación vendedor"
     (get-in data [:entity/company :company/party :party/identification])
-    :red-bg)
-   (SiigoProperties.
-    "Bodega"
     "" ; TODO: Set this
-    :blue-bg)
-   (SiigoProperties.
-    "Cantidad"
     (:invoice-item/precise-quantity item)
-    :red-bg)
-   (SiigoProperties.
-    "Valor unitario"
     (get-in item [:invoice-item/product :product/precise-price])
-    :red-bg)
-   (SiigoProperties.
-    "Valor Descuento"
     "" ; TODO: Set this
-    :blue-bg)
-   (SiigoProperties.
-    "Base AIU"
     "" ; TODO: Set this
-    :blue-bg)
-   (SiigoProperties.
-    "Impuesto Cargo"
     "" ; TODO: Set this
-    :blue-bg)
-   (SiigoProperties.
-    "Impto. Cargo 2"
     "" ; TODO: Set this
-    :blue-bg)
-   (SiigoProperties.
-    "Impuesto Retencion"
     "" ; TODO: Set this
-    :blue-bg)
-   (SiigoProperties.
-    "ReteICA - ReteIVA"
     "" ; TODO: Set this
-    :blue-bg)
-   (SiigoProperties.
-    "Tipo de Forma de Pago"
     (:invoice/payment-means-type data)
-    :red-bg)
-   (SiigoProperties.
-    "Valor de Forma de Pago"
     (:doc.analytics/total data)
-    :red-bg)
-   (SiigoProperties.
-    "Medio de Pago"
     (:invoice/payment-means data)
-    :blue-bg)
-   (SiigoProperties.
-    "Fecha Vencimiento"
     (common-date (:invoice/payment-date data))
-    :blue-bg)
-   (SiigoProperties.
-    "Observaciones"
     "" ; TODO: Set this
-    :blue-bg)))
+    ))
 
 (defn siigo-flatten-invoice
   "Flatten an invoice"
