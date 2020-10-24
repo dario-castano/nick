@@ -3,7 +3,9 @@
   [clojure.edn :as edn]
   [dataico.services.workbook :as dw])
   (:import (java.text SimpleDateFormat)
-           (java.lang AssertionError)))
+           (java.lang AssertionError)
+           (java.util Date)
+           (clojure.lang IPersistentMap)))
 
 (defrecord SiigoElement [t-comprobante
                          consecutivo
@@ -82,10 +84,10 @@
   "
   [data item]
   (when-not 
-   (instance? clojure.lang.IPersistentMap data)
+   (instance? IPersistentMap data)
     (throw (AssertionError. "data is not a clojure.lang.IPersistentMap")))
   (when-not 
-   (instance? clojure.lang.IPersistentMap item)
+   (instance? IPersistentMap item)
     (throw (AssertionError. "item is not a clojure.lang.IPersistentMap")))          
   (SiigoElement.
     "" ; TODO: Set this
@@ -120,33 +122,14 @@
   [invoice]
   (map #(siigo-map invoice %) (:invoice/items invoice)))
 
-(defn siigo-row
-  "Builds a row to insert into the spreadsheet
-   
-   Parameters
-   + kw : a SiigoProperties keyword
-   + smap : SiigoElement
-   
-   Returns
-   Sequence with the requested data (clojure.lang.LazySeq)
-   
-  "
-  [kw smap]
-  (when-not (keyword? kw) (throw (AssertionError. "kw is not a Keyword")))
-  ;(when-not (= (type smap) SiigoElement) (throw (AssertionError. "smap is not a SiigoElement")))
-  (map kw (vals smap)))
+(defn dataico->siigo!
+  [invoices]
+  (let [filename (str "sheets/" "out_" (.getTime (Date.)) ".xlsx")
+        siigo-elem-seq (mapcat siigo-flatten-invoice invoices)
+        wb-data (map vals siigo-elem-seq)
+        siigo-wb (dw/create-siigo-workbook! wb-data)
+        ]
+    (dw/save-workbook-as! filename siigo-wb)
+    (dw/resize-cols! filename)
+    filename))
 
-;(defn dataico->siigo!
-;  [invoices]
-;  (let [filename (str "sheets/" "out_" (.getTime (Date.)) ".xlsx")
-;        siigo-elem-seq (mapcat siigo-flatten-invoice invoices)
-;        header-colors (map #(siigo-row :bgcolor %) siigo-elem-seq)
-;        wb-data (conj
-;                  (map #(siigo-row :value %) siigo-elem-seq)
-;                  (map ))
-;        siigo-wb (dw/create-siigo-workbook! siigo-seq)
-;        ]
-;    (dw/save-workbook-as! filename siigo-wb)
-;    (dw/resize-cols! filename)
-;    filename
-;    ))
