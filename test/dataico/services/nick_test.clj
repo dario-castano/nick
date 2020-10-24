@@ -51,3 +51,7 @@
       (is (= (data/diff (nick/load-invoice multi_edn) multi_map) 
              [nil, nil, multi_map])))
     ))
+
+(deftest siigo-map-test)
+
+(deftest siigo-row-test)
