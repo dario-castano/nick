@@ -62,7 +62,7 @@
   [filename]
   (->> filename
        slurp
-       (edn/read-string {:readers {'uuid str, 'inst str}})))
+       (edn/read-string {:readers {'uuid str}})))
 
 (def invoice-names ["invoices/invoice1.edn"
                     "invoices/invoice2.edn"])
@@ -74,7 +74,7 @@
 
   Parameters
   + data : Invoice data (clojure.lang.PersistentHashMap)
-  + item : Each item extracted from the :invoice/items vector
+  + item : One item extracted from the :invoice/items vector
            loaded by dataico.services.nick/load-invoice
            (clojure.lang.PersistentVector)
 
@@ -84,11 +84,11 @@
   "
   [data item]
   (when-not 
-   (instance? clojure.lang.PersistentHashMap data)
-    (throw (AssertionError. "data is not a clojure.lang.PersistentHashMap")))
+   (instance? clojure.lang.IPersistentMap data)
+    (throw (AssertionError. "data is not a clojure.lang.IPersistentMap")))
   (when-not 
-   (instance? clojure.lang.PersistentVector item)
-    (throw (AssertionError. "item is not a clojure.lang.PersistentVector")))          
+   (instance? clojure.lang.IPersistentMap item)
+    (throw (AssertionError. "item is not a clojure.lang.IPersistentMap")))          
   (SiigoElement.
    (SiigoProperties.
     "Tipo de comprobante"
@@ -191,20 +191,38 @@
     "" ; TODO: Set this
     :blue-bg)))
 
+(defn siigo-flatten-invoice
+  "Flatten an invoice"
+  [invoice]
+  (map #(siigo-map invoice %) (:invoice/items invoice)))
+
 (defn siigo-row
   "Builds a row to insert into the spreadsheet
    
    Parameters
    + kw : a SiigoProperties keyword
-   + siigomap : SiigoElement
+   + smap : SiigoElement
    
    Returns
    Sequence with the requested data (clojure.lang.LazySeq)
    
   "
-  [kw siigomap]
-  (when-not (and 
-             (keyword? kw)
-             (= (type siigomap) SiigoElement)) 
-    (throw java.lang.IllegalArgumentException))
-  (map kw (vals siigomap)))
+  [kw smap]
+  (when-not (keyword? kw) (throw (AssertionError. "kw is not a Keyword")))
+  ;(when-not (= (type smap) SiigoElement) (throw (AssertionError. "smap is not a SiigoElement")))
+  (map kw (vals smap)))
+
+;(defn dataico->siigo!
+;  [invoices]
+;  (let [filename (str "sheets/" "out_" (.getTime (Date.)) ".xlsx")
+;        siigo-elem-seq (mapcat siigo-flatten-invoice invoices)
+;        header-colors (map #(siigo-row :bgcolor %) siigo-elem-seq)
+;        wb-data (conj
+;                  (map #(siigo-row :value %) siigo-elem-seq)
+;                  (map ))
+;        siigo-wb (dw/create-siigo-workbook! siigo-seq)
+;        ]
+;    (dw/save-workbook-as! filename siigo-wb)
+;    (dw/resize-cols! filename)
+;    filename
+;    ))

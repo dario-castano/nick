@@ -2,7 +2,8 @@
   (:require [clojure.test :refer :all]
             [dataico.services.nick :as nick]
             [clojure.java.io :as io]
-            [clojure.data :as data]))
+            [clojure.data :as data])
+  (:import (dataico.services.nick SiigoElement SiigoProperties)))
 
 (def siigo-element-kws '(:t-comprobante
                         :consecutivo
@@ -30,11 +31,13 @@
                         :fecha-vencimiento
                         :observaciones))
 
+(def siigo-property-kws '(:title :value :bgcolor))
+
 (def sample-map {:invoice/number "A0000",
                  :invoice/customer {:party/identification "123456",
                                     :party/company-name "COMPANY",
                                     :party/email "mail@mail.com"},
-                 :entity/company {:company/party {:party/identification "000000000"}},
+                 :entity/company {:company/party {:party/identification "999999"}},
                  :invoice/issue-date #inst "2020-12-12",
                  :invoice/payment-date #inst "2020-12-12"
                  :invoice/payment-means-type "1",
@@ -45,6 +48,33 @@
                                   :invoice-item/description "DESCRIPTION",
                                   :invoice-item/precise-quantity 1}]
                  })
+(def ok_vals '(""
+                "A0000"
+                "123456"
+                ""
+                ""
+                "11/12/2020"
+                "COMPANY"
+                "mail@mail.com"
+                "EM"
+                "DESCRIPTION"
+                "999999"
+                ""
+                1
+                100
+                ""
+                ""
+                ""
+                ""
+                ""
+                ""
+                "1"
+                10000
+                "47"
+                "11/12/2020"
+                ""))
+
+(def ok-map (zipmap siigo-element-kws ok_vals))
 
 (deftest load-invoice-test
   (let [executable_file "testdata/an_executable"
@@ -97,7 +127,7 @@
 (deftest siigo-map-test
   (let [sample_date #inst "1985-04-12T23:20:50.52Z"
         sample_uuid #uuid "c1197d5a-01e7-47b5-8697-69d5d906a69f"
-        invoice-items (:invoice/items sample-map)
+        invoice-item (first (:invoice/items sample-map))
         siigo-elem-kwcount (count siigo-element-kws)]
     
     (testing "No args should fail" 
@@ -119,20 +149,31 @@
                    (nick/siigo-map 0 (:invoice/items sample-map)))))
     (testing "Correct args should return a SiigoElement" 
       (is (= 
-           (type (nick/siigo-map sample-map invoice-items))
-           nick/SiigoElement)))
+           (type (nick/siigo-map sample-map invoice-item))
+           SiigoElement)))
     (testing "SiigoElement should have right num of keywords" 
       (is (= siigo-elem-kwcount 
-             (-> (nick/siigo-map sample-map invoice-items)
+             (-> (nick/siigo-map sample-map invoice-item)
                  keys
                  count))))
     (testing "SiigoElement should have the correct keywords" 
       (is (= 
-           (keys (nick/siigo-map sample-map invoice-items)) 
+           (keys (nick/siigo-map sample-map invoice-item)) 
            siigo-element-kws)))
-    (testing "Each element in SiigoElement should be a SiigoProperty" ())
-    (testing "Nested SiigoProperties should have right num of keywords" ())
-    (testing "Should be populating correct values" ())
+    (testing "Each element in SiigoElement should be a SiigoProperty"
+      (is (every? #(= % SiigoProperties)
+                  (map type (vals
+                              (nick/siigo-map sample-map invoice-item))))))
+    (testing "Nested SiigoProperties should have right num of keywords"
+      (is (every? #(= % (count siigo-property-kws))
+                  (->> (vals (nick/siigo-map sample-map invoice-item))
+                       (map keys)
+                       (map count)))))
+    (testing "Should be populating correct values"
+      (let [smap (nick/siigo-map sample-map invoice-item)
+            testdata (zipmap (keys smap) (map :value (vals smap)))]
+        (is (= (data/diff testdata ok-map) [nil, nil, ok-map]))
+        ))
    ))
 
 (deftest siigo-row-test)
