@@ -163,5 +163,3 @@
         (is (= (data/diff testdata ok-map) [nil, nil, ok-map]))
         ))
    ))
-
-(deftest siigo-row-test)
