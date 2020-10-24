@@ -59,8 +59,7 @@
   [filename]
   (->> filename
        slurp
-       (edn/read-string {:readers {'uuid str
-                                           'inst str}})))
+       (edn/read-string {:readers {'uuid str, 'inst str}})))
 
 (def invoice-names ["invoices/invoice1.edn"
                     "invoices/invoice2.edn"])
@@ -81,6 +80,10 @@
 
   "
   [data item]
+  (when-not (and 
+             (instance? clojure.lang.PersistentHashMap data)
+             (instance? clojure.lang.PersistentVector item))
+    (throw java.lang.IllegalArgumentException))
   (SiigoElement.
    (SiigoProperties.
     "Tipo de comprobante"
@@ -195,4 +198,8 @@
    
   "
   [kw siigomap]
+  (when-not (and 
+             (keyword? kw)
+             (= (type siigomap) SiigoElement)) 
+    (throw java.lang.IllegalArgumentException))
   (map kw (vals siigomap)))
