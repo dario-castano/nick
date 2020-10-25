@@ -88,6 +88,8 @@
 
 (def ok-map (zipmap siigo-element-kws ok_vals))
 
+(deftest date-parser-test)
+
 (deftest load-invoice-test
   (let [executable_file "testdata/an_executable"
         corrupt_invoice "testdata/corrupt_invoice.edn"

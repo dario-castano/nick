@@ -33,9 +33,18 @@
                          observaciones])
 
 (defn date-parser
-  "Parse a date"
-  [dateobj]
-  (.parse (SimpleDateFormat. "yyyy-MM-dd'T'HH:mm:ss.SSS") dateobj))
+  "Converts #inst strings to java.util.Date objects
+
+  Parameters
+  + date-string : string with #inst format
+                  (yyyy-MM-dd'T'HH:mm:ss.SSS)
+
+  Returns
+  Date object (java.util.Date)
+
+  "
+  [date-string]
+  (.parse (SimpleDateFormat. "yyyy-MM-dd'T'HH:mm:ss.SSS") date-string))
 
 (defn load-invoice
   "Loads an edn invoice from the file system
