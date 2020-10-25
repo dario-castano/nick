@@ -1,7 +1,6 @@
 (ns dataico.services.nick
-  (:require
-  [clojure.edn :as edn]
-  [dataico.services.workbook :as dw])
+  (:require [clojure.edn :as edn]
+            [dataico.services.workbook :as dw])
   (:import (java.text SimpleDateFormat)
            (java.lang AssertionError)
            (java.util Date)
@@ -33,22 +32,6 @@
                          fecha-vencimiento
                          observaciones])
 
-(defn common-date
-  "Convert an #inst tagged date to a dd/MM/yyyy format
-
-  Parameters
-  + date : The date to convert (java.util.Date)
-
-  Returns
-  String with the formatted date (java.lang.String)
-
-  "
-  [date]
-  (->> (prn-str date)
-       (edn/read-string)
-       (.format (SimpleDateFormat. "dd/MM/yyyy"))))
-
-
 (defn load-invoice
   "Loads an edn invoice from the file system
 
@@ -62,7 +45,8 @@
   [filename]
   (->> filename
        slurp
-       (edn/read-string {:readers {'uuid str}})))
+       (edn/read-string {:readers {'uuid str
+                                   'inst str}})))
 
 (def invoice-names ["invoices/invoice1.edn"
                     "invoices/invoice2.edn"])
@@ -95,7 +79,7 @@
     (get-in data [:invoice/customer :party/identification])
     "" ; TODO: Set this
     "" ; TODO: Set this
-    (common-date (:invoice/issue-date data))
+    (:invoice/issue-date data)
     (get-in data [:invoice/customer :party/company-name])
     (get-in data [:invoice/customer :party/email])
     (get-in item [:invoice-item/product :product/sku])
@@ -113,12 +97,12 @@
     (:invoice/payment-means-type data)
     (:doc.analytics/total data)
     (:invoice/payment-means data)
-    (common-date (:invoice/payment-date data))
+    (:invoice/payment-date data)
     "" ; TODO: Set this
     ))
 
 (defn siigo-flatten-invoice
-  "Flatten an invoice"
+  "Flattens an invoice"
   [invoice]
   (map #(siigo-map invoice %) (:invoice/items invoice)))
 
@@ -133,3 +117,4 @@
     (dw/resize-cols! filename)
     filename))
 
+(dataico->siigo! invoices)

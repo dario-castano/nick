@@ -3,7 +3,9 @@
             [dataico.services.nick :as nick]
             [clojure.java.io :as io]
             [clojure.data :as data])
-  (:import (dataico.services.nick SiigoElement)))
+  (:import (dataico.services.nick SiigoElement)
+           (clojure.lang ArityException IPersistentMap)
+           (java.io FileNotFoundException)))
 
 (def siigo-element-kws '(:t-comprobante
                         :consecutivo
@@ -44,7 +46,19 @@
                  :invoice/items [{:invoice-item/product {:product/sku "EM",
                                                          :product/precise-price 100},
                                   :invoice-item/description "DESCRIPTION",
-                                  :invoice-item/precise-quantity 1}]
+                                  :invoice-item/precise-quantity 1},
+                                 {:invoice-item/product {:product/sku "EM1",
+                                                         :product/precise-price 100},
+                                  :invoice-item/description "DESCRIPTION1",
+                                  :invoice-item/precise-quantity 1},
+                                 {:invoice-item/product {:product/sku "EM2",
+                                                         :product/precise-price 200},
+                                  :invoice-item/description "DESCRIPTION2",
+                                  :invoice-item/precise-quantity 2},
+                                 {:invoice-item/product {:product/sku "EM3",
+                                                         :product/precise-price 300},
+                                  :invoice-item/description "DESCRIPTION3",
+                                  :invoice-item/precise-quantity 3}]
                  })
 (def ok_vals '(""
                 "A0000"
@@ -96,24 +110,24 @@
                             :value "d"}]}]
     
     (testing "No args should fail" 
-      (is (thrown? clojure.lang.ArityException 
+      (is (thrown? ArityException
                    (nick/load-invoice))))
     (testing "Wrong number of args should fail" 
-      (is (thrown? clojure.lang.ArityException 
+      (is (thrown? ArityException
                    (nick/load-invoice "invoice1" "invoice2"))))
     (testing "Nonexistent file should fail"
       (when (.exists (io/file nonexistent_invoice))
         (io/delete-file nonexistent_invoice)) 
-      (is (thrown? java.io.FileNotFoundException 
+      (is (thrown? FileNotFoundException
                    (nick/load-invoice nonexistent_invoice))))
     (testing "Wrong kind of file should fail" 
-      (is (thrown? java.lang.RuntimeException 
+      (is (thrown? RuntimeException
                    (nick/load-invoice executable_file))))
     (testing "Corrupt file should fail" 
-      (is (thrown? java.lang.RuntimeException
+      (is (thrown? RuntimeException
                    (nick/load-invoice corrupt_invoice))))
     (testing "Should return a Persistent Map"
-      (is (= true (instance? clojure.lang.IPersistentMap 
+      (is (= true (instance? IPersistentMap
                              (nick/load-invoice multi_edn)))))
     (testing "Loaded EDN should return correct data"
       (is (= (:status (nick/load-invoice ok_edn)) (:status ok_map))))
@@ -129,21 +143,21 @@
         siigo-elem-kwcount (count siigo-element-kws)]
     
     (testing "No args should fail" 
-      (is (thrown? clojure.lang.ArityException 
+      (is (thrown? ArityException
                    (nick/siigo-map))))
     (testing "Wrong number of args should fail" 
-      (is (thrown? clojure.lang.ArityException 
+      (is (thrown? ArityException
                    (nick/siigo-map "a")))
-      (is (thrown? clojure.lang.ArityException
+      (is (thrown? ArityException
                    (nick/siigo-map 1 2 3))))
     (testing "Wrong type args should fail" 
-      (is (thrown? java.lang.AssertionError 
+      (is (thrown? AssertionError
                    (nick/siigo-map sample_date 0)))
-      (is (thrown? java.lang.AssertionError
+      (is (thrown? AssertionError
                    (nick/siigo-map "a" sample_uuid)))
-      (is (thrown? java.lang.AssertionError
+      (is (thrown? AssertionError
                    (nick/siigo-map sample-map 0)))
-      (is (thrown? java.lang.AssertionError
+      (is (thrown? AssertionError
                    (nick/siigo-map 0 (:invoice/items sample-map)))))
     (testing "Correct args should return a SiigoElement" 
       (is (= 
