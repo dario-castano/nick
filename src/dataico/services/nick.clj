@@ -156,10 +156,9 @@
   "
   [invoices]
   (let [filename (str "sheets/" "out_" (.getTime (Date.)) ".xlsx")
-        siigo-elem-seq (mapcat siigo-flatten-invoice invoices)
-        wb-data (map vals siigo-elem-seq)
-        siigo-wb (dw/create-siigo-workbook! wb-data)
-        ]
+        siigo-wb (->> (mapcat siigo-flatten-invoice invoices)
+                      (map vals)
+                      (dw/create-siigo-workbook!))]
     (dw/save-workbook-as! filename siigo-wb)
     (dw/resize-cols! filename)
     filename))
