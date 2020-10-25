@@ -73,6 +73,38 @@
     (xl/add-rows! sheet siigo-invoices)
     wb))
 
+(defn open-xlsx
+  "Loads a XSSFWorkbook from a xlsx file
+
+  Parameters
+  + filename : Path of the xlsx book
+
+  Returns
+  Docjure workbook (XSSFWorkbook)
+  "
+  [filename]
+  (->> filename
+       (new FileInputStream)
+       (. XSSFWorkbookFactory createWorkbook)))
+
+(defn show-wb-content
+  "Gets a sequence of rows from a XSSFWorkbook
+
+  Parameters
+  + workbook : Docjure workbook (XSSFWorkbook)
+  + sheet-idx : Index of the sheet you want to get
+                the data
+
+  Returns
+  A sequence (clojure.lang.LazySeq) with a list by each
+  row of the sheet
+  "
+  [workbook sheet-idx]
+  (->> (. workbook getSheetAt sheet-idx)
+       (xl/row-seq)
+       (map #(iterator-seq (.iterator %)))
+       (map (fn [x] (map (fn [y] (.toString y)) x)))))
+
 (defn resize-cols!
   "Autoresize columns of a SIIGO spreadsheet (25 cols)
 
