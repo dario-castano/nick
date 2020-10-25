@@ -1,6 +1,7 @@
 (ns dataico.services.nick-test
   (:require [clojure.test :refer :all]
             [dataico.services.nick :as nick]
+            [dataico.services.workbook :as wbk]
             [clojure.java.io :as io]
             [clojure.data :as data]
             [dk.ative.docjure.spreadsheet :as xl])
@@ -45,23 +46,23 @@
                  :invoice/payment-date #inst "2020-12-24T00:00:00.000-05:00",
                  :invoice/payment-means-type "1",
                  :invoice/payment-means "47",
-                 :doc.analytics/total 10000,
+                 :doc.analytics/total "10000",
                  :invoice/items [{:invoice-item/product {:product/sku "EM",
-                                                         :product/precise-price 100},
+                                                         :product/precise-price "100"},
                                   :invoice-item/description "DESCRIPTION",
-                                  :invoice-item/precise-quantity 1},
+                                  :invoice-item/precise-quantity "1"},
                                  {:invoice-item/product {:product/sku "EM1",
-                                                         :product/precise-price 100},
+                                                         :product/precise-price "100"},
                                   :invoice-item/description "DESCRIPTION1",
-                                  :invoice-item/precise-quantity 1},
+                                  :invoice-item/precise-quantity "1"},
                                  {:invoice-item/product {:product/sku "EM2",
-                                                         :product/precise-price 200},
+                                                         :product/precise-price "200"},
                                   :invoice-item/description "DESCRIPTION2",
-                                  :invoice-item/precise-quantity 2},
+                                  :invoice-item/precise-quantity "2"},
                                  {:invoice-item/product {:product/sku "EM3",
-                                                         :product/precise-price 300},
+                                                         :product/precise-price "300"},
                                   :invoice-item/description "DESCRIPTION3",
-                                  :invoice-item/precise-quantity 3}]})
+                                  :invoice-item/precise-quantity "3"}]})
 
 (def sample-map1 {:invoice/number "A0001",
                  :invoice/customer {:party/identification "654321",
@@ -72,23 +73,23 @@
                  :invoice/payment-date #inst "2020-12-25T00:00:00.000-05:00",
                  :invoice/payment-means-type "2",
                  :invoice/payment-means "48",
-                 :doc.analytics/total 20000,
+                 :doc.analytics/total "20000",
                  :invoice/items [{:invoice-item/product {:product/sku "EM-1",
-                                                         :product/precise-price 400},
+                                                         :product/precise-price "400"},
                                   :invoice-item/description "DESCRIPTION-1",
-                                  :invoice-item/precise-quantity 4},
+                                  :invoice-item/precise-quantity "4"},
                                  {:invoice-item/product {:product/sku "EM1-1",
-                                                         :product/precise-price 500},
+                                                         :product/precise-price "500"},
                                   :invoice-item/description "DESCRIPTION1-1",
-                                  :invoice-item/precise-quantity 5},
+                                  :invoice-item/precise-quantity "5"},
                                  {:invoice-item/product {:product/sku "EM2-1",
-                                                         :product/precise-price 600},
+                                                         :product/precise-price "600"},
                                   :invoice-item/description "DESCRIPTION2-1",
-                                  :invoice-item/precise-quantity 6},
+                                  :invoice-item/precise-quantity "6"},
                                  {:invoice-item/product {:product/sku "EM3-1",
-                                                         :product/precise-price 700},
+                                                         :product/precise-price "700"},
                                   :invoice-item/description "DESCRIPTION3-1",
-                                  :invoice-item/precise-quantity 7}]})
+                                  :invoice-item/precise-quantity "7"}]})
 
 (def sample-map2 {:invoice/number "A0002",
                  :invoice/customer {:party/identification "987654",
@@ -99,23 +100,23 @@
                  :invoice/payment-date #inst "2020-12-26T00:00:00.000-05:00",
                  :invoice/payment-means-type "3",
                  :invoice/payment-means "49",
-                 :doc.analytics/total 30000,
+                 :doc.analytics/total "30000",
                  :invoice/items [{:invoice-item/product {:product/sku "EM-2",
-                                                         :product/precise-price 900},
+                                                         :product/precise-price "900"},
                                   :invoice-item/description "DESCRIPTION-2",
-                                  :invoice-item/precise-quantity 9},
+                                  :invoice-item/precise-quantity "9"},
                                  {:invoice-item/product {:product/sku "EM1-2",
-                                                         :product/precise-price 800},
+                                                         :product/precise-price "800"},
                                   :invoice-item/description "DESCRIPTION1-2",
-                                  :invoice-item/precise-quantity 8},
+                                  :invoice-item/precise-quantity "8"},
                                  {:invoice-item/product {:product/sku "EM2-2",
-                                                         :product/precise-price 700},
+                                                         :product/precise-price "700"},
                                   :invoice-item/description "DESCRIPTION2-2",
-                                  :invoice-item/precise-quantity 7},
+                                  :invoice-item/precise-quantity "7"},
                                  {:invoice-item/product {:product/sku "EM3-2",
-                                                         :product/precise-price 600},
+                                                         :product/precise-price "600"},
                                   :invoice-item/description "DESCRIPTION3-2",
-                                  :invoice-item/precise-quantity 6}]})
+                                  :invoice-item/precise-quantity "6"}]})
 
 (def ok_vals '(""
                 "A0000"
@@ -129,8 +130,8 @@
                 "DESCRIPTION"
                 "999999"
                 ""
-                1
-                100
+                "1"
+                "100"
                 ""
                 ""
                 ""
@@ -138,7 +139,7 @@
                 ""
                 ""
                 "1"
-                10000
+                "10000"
                 "47"
                 "24/12/2020"
                 ""))
@@ -157,8 +158,8 @@
                                                             :descr-producto "DESCRIPTION",
                                                             :id-vendedor "999999",
                                                             :bodega "",
-                                                            :cantidad 1,
-                                                            :vr-unitario 100,
+                                                            :cantidad "1",
+                                                            :vr-unitario "100",
                                                             :vr-descuento "",
                                                             :base-aiu "",
                                                             :imp-cargo "",
@@ -166,7 +167,7 @@
                                                             :imp-retencion "",
                                                             :reteica-reteiva "",
                                                             :tipo-fpago "1",
-                                                            :vr-fpago 10000,
+                                                            :vr-fpago "10000",
                                                             :medio-pago "47",
                                                             :fecha-vencimiento "24/12/2020",
                                                             :observaciones ""}
@@ -182,8 +183,8 @@
                                                              :descr-producto "DESCRIPTION1",
                                                              :id-vendedor "999999",
                                                              :bodega "",
-                                                             :cantidad 1,
-                                                             :vr-unitario 100,
+                                                             :cantidad "1",
+                                                             :vr-unitario "100",
                                                              :vr-descuento "",
                                                              :base-aiu "",
                                                              :imp-cargo "",
@@ -191,7 +192,7 @@
                                                              :imp-retencion "",
                                                              :reteica-reteiva "",
                                                              :tipo-fpago "1",
-                                                             :vr-fpago 10000,
+                                                             :vr-fpago "10000",
                                                              :medio-pago "47",
                                                              :fecha-vencimiento "24/12/2020",
                                                              :observaciones ""}
@@ -207,8 +208,8 @@
                                                              :descr-producto "DESCRIPTION2",
                                                              :id-vendedor "999999",
                                                              :bodega "",
-                                                             :cantidad 2,
-                                                             :vr-unitario 200,
+                                                             :cantidad "2",
+                                                             :vr-unitario "200",
                                                              :vr-descuento "",
                                                              :base-aiu "",
                                                              :imp-cargo "",
@@ -216,7 +217,7 @@
                                                              :imp-retencion "",
                                                              :reteica-reteiva "",
                                                              :tipo-fpago "1",
-                                                             :vr-fpago 10000,
+                                                             :vr-fpago "10000",
                                                              :medio-pago "47",
                                                              :fecha-vencimiento "24/12/2020",
                                                              :observaciones ""}
@@ -232,8 +233,8 @@
                                                              :descr-producto "DESCRIPTION3",
                                                              :id-vendedor "999999",
                                                              :bodega "",
-                                                             :cantidad 3,
-                                                             :vr-unitario 300,
+                                                             :cantidad "3",
+                                                             :vr-unitario "300",
                                                              :vr-descuento "",
                                                              :base-aiu "",
                                                              :imp-cargo "",
@@ -241,7 +242,7 @@
                                                              :imp-retencion "",
                                                              :reteica-reteiva "",
                                                              :tipo-fpago "1",
-                                                             :vr-fpago 10000,
+                                                             :vr-fpago "10000",
                                                              :medio-pago "47",
                                                              :fecha-vencimiento "24/12/2020",
                                                              :observaciones ""}))
@@ -399,12 +400,13 @@
 (deftest dataico->siigo!-test
   (let [invoices [sample-map sample-map1 sample-map2]
         values (->> invoices
-                    (map nick/siigo-flatten-invoice)
+                    (mapcat nick/siigo-flatten-invoice)
                     (map vals))
-        name (nick/dataico->siigo! invoices)
-        rows (->> (xl/load-workbook-from-file name)
-                  (xl/select-sheet "Hoja1")
-                  xl/row-seq)]
+        fname (nick/dataico->siigo! invoices)
+        rows (-> fname
+                 (wbk/open-xlsx)
+                 (wbk/show-wb-content 0)
+                  rest )]
     (testing "Should write correct data"
       (is (= rows values))
       )))
