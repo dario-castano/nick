@@ -46,6 +46,20 @@
   [date-string]
   (.parse (SimpleDateFormat. "yyyy-MM-dd'T'HH:mm:ss.SSS") date-string))
 
+(defn pretty-date
+  "Converts a java.util.Date object to a dd/MM/yyyy formatted string
+
+  Parameters
+  + dateobj : Date object (java.util.Date) or epoch time
+
+  Returns
+  dd/MM/yyyy formatted string
+
+  "
+  [dateobj]
+  (->> dateobj
+       (.format (SimpleDateFormat. "dd/MM/yyyy"))))
+
 (defn load-invoice
   "Loads an edn invoice from the file system
 
@@ -93,7 +107,7 @@
     (get-in data [:invoice/customer :party/identification])
     "" ; TODO: Set this
     "" ; TODO: Set this
-    (:invoice/issue-date data)
+    (pretty-date (:invoice/issue-date data))
     (get-in data [:invoice/customer :party/company-name])
     (get-in data [:invoice/customer :party/email])
     (get-in item [:invoice-item/product :product/sku])
@@ -111,7 +125,7 @@
     (:invoice/payment-means-type data)
     (:doc.analytics/total data)
     (:invoice/payment-means data)
-    (:invoice/payment-date data)
+    (pretty-date (:invoice/payment-date data))
     "" ; TODO: Set this
     ))
 

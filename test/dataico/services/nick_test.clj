@@ -5,7 +5,9 @@
             [clojure.data :as data])
   (:import (dataico.services.nick SiigoElement)
            (clojure.lang ArityException IPersistentMap)
-           (java.io FileNotFoundException)))
+           (java.io FileNotFoundException)
+           (java.util Date)
+           (java.text ParseException)))
 
 (def siigo-element-kws '(:t-comprobante
                         :consecutivo
@@ -38,8 +40,8 @@
                                     :party/company-name "COMPANY",
                                     :party/email "mail@mail.com"},
                  :entity/company {:company/party {:party/identification "999999"}},
-                 :invoice/issue-date #inst "2020-12-12",
-                 :invoice/payment-date #inst "2020-12-12"
+                 :invoice/issue-date #inst "2020-12-24T00:00:00.000-05:00",
+                 :invoice/payment-date #inst "2020-12-24T00:00:00.000-05:00",
                  :invoice/payment-means-type "1",
                  :invoice/payment-means "47",
                  :doc.analytics/total 10000,
@@ -65,7 +67,7 @@
                 "123456"
                 ""
                 ""
-                "11/12/2020"
+                "24/12/2020"
                 "COMPANY"
                 "mail@mail.com"
                 "EM"
@@ -83,12 +85,66 @@
                 "1"
                 10000
                 "47"
-                "11/12/2020"
+                "24/12/2020"
                 ""))
 
 (def ok-map (zipmap siigo-element-kws ok_vals))
 
-(deftest date-parser-test)
+(deftest date-parser-test
+  (let [dateinst (Date.)
+        ok_date "2020-10-25T11:34:34.044-05:00"
+        obj_date "Sun Oct 25 11:34:34 COT 2020"]
+    (testing "No args should fail"
+      (is (thrown? ArityException
+                   (nick/date-parser))))
+    (testing "Wrong num of args should fail"
+      (is (thrown? ArityException
+                   (nick/date-parser (Date.) (Date.)))))
+    (testing "Wrong type args should fail"
+      (is (thrown? ClassCastException
+                   (nick/date-parser 1))))
+    (testing "Bad formatted string should fail"
+      (is (thrown? ParseException
+                   (nick/date-parser "a")))
+      (is (thrown? ParseException
+                   (nick/date-parser "12-12-2012")))
+      (is (thrown? ParseException
+                   (nick/date-parser "1999")))
+      (is (thrown? ParseException
+                   (nick/date-parser "1/1/1970")))
+      (is (thrown? ParseException
+                   (nick/date-parser "20:20")))
+      (is (thrown? ParseException
+                   (nick/date-parser "10.10.10")))
+      (is (thrown? ParseException
+                   (nick/date-parser "08:15:20.100")))
+      (is (thrown? ParseException
+                   (nick/date-parser "2000-01-01"))))
+    (testing "Should return a java.util.Date object"
+      (is (instance? Date (nick/date-parser ok_date))))
+    (testing "Should parse correct formatted Dates"
+      (is (= (.toString (nick/date-parser ok_date))
+             obj_date)))))
+
+(deftest pretty-date-test
+  (let [sample_date #inst "1999-02-13T16:20:00.00Z"
+        sample_str "13/02/1999"
+        epoch 1600000000000
+        epoch_str "13/09/2020"]
+    (testing "No args should fail"
+      (is (thrown? ArityException
+                   (nick/pretty-date))))
+    (testing "Wrong num args should fail"
+      (is (thrown? ArityException
+                   (nick/pretty-date (Date.) (Date.) (Date.)))))
+    (testing "Wrong type arg should fail"
+      (is (thrown? IllegalArgumentException
+                   (nick/pretty-date "hello")))
+      (is (thrown? IllegalArgumentException
+                   (nick/pretty-date {:a 1}))))
+    (testing "Should convert to the given format"
+      (is (= (nick/pretty-date sample_date) sample_str))
+      (is (= (nick/pretty-date epoch) epoch_str)))))
 
 (deftest load-invoice-test
   (let [executable_file "testdata/an_executable"
