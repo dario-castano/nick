@@ -2,7 +2,8 @@
   (:require [clojure.test :refer :all]
             [dataico.services.nick :as nick]
             [clojure.java.io :as io]
-            [clojure.data :as data])
+            [clojure.data :as data]
+            [dk.ative.docjure.spreadsheet :as xl])
   (:import (dataico.services.nick SiigoElement)
            (clojure.lang ArityException IPersistentMap)
            (java.io FileNotFoundException)
@@ -60,8 +61,62 @@
                                  {:invoice-item/product {:product/sku "EM3",
                                                          :product/precise-price 300},
                                   :invoice-item/description "DESCRIPTION3",
-                                  :invoice-item/precise-quantity 3}]
-                 })
+                                  :invoice-item/precise-quantity 3}]})
+
+(def sample-map1 {:invoice/number "A0001",
+                 :invoice/customer {:party/identification "654321",
+                                    :party/company-name "COMPANY1",
+                                    :party/email "mail1@mail.com"},
+                 :entity/company {:company/party {:party/identification "888888"}},
+                 :invoice/issue-date #inst "2020-12-25T00:00:00.000-05:00",
+                 :invoice/payment-date #inst "2020-12-25T00:00:00.000-05:00",
+                 :invoice/payment-means-type "2",
+                 :invoice/payment-means "48",
+                 :doc.analytics/total 20000,
+                 :invoice/items [{:invoice-item/product {:product/sku "EM-1",
+                                                         :product/precise-price 400},
+                                  :invoice-item/description "DESCRIPTION-1",
+                                  :invoice-item/precise-quantity 4},
+                                 {:invoice-item/product {:product/sku "EM1-1",
+                                                         :product/precise-price 500},
+                                  :invoice-item/description "DESCRIPTION1-1",
+                                  :invoice-item/precise-quantity 5},
+                                 {:invoice-item/product {:product/sku "EM2-1",
+                                                         :product/precise-price 600},
+                                  :invoice-item/description "DESCRIPTION2-1",
+                                  :invoice-item/precise-quantity 6},
+                                 {:invoice-item/product {:product/sku "EM3-1",
+                                                         :product/precise-price 700},
+                                  :invoice-item/description "DESCRIPTION3-1",
+                                  :invoice-item/precise-quantity 7}]})
+
+(def sample-map2 {:invoice/number "A0002",
+                 :invoice/customer {:party/identification "987654",
+                                    :party/company-name "COMPANY2",
+                                    :party/email "mail2@mail.com"},
+                 :entity/company {:company/party {:party/identification "777777"}},
+                 :invoice/issue-date #inst "2020-12-26T00:00:00.000-05:00",
+                 :invoice/payment-date #inst "2020-12-26T00:00:00.000-05:00",
+                 :invoice/payment-means-type "3",
+                 :invoice/payment-means "49",
+                 :doc.analytics/total 30000,
+                 :invoice/items [{:invoice-item/product {:product/sku "EM-2",
+                                                         :product/precise-price 900},
+                                  :invoice-item/description "DESCRIPTION-2",
+                                  :invoice-item/precise-quantity 9},
+                                 {:invoice-item/product {:product/sku "EM1-2",
+                                                         :product/precise-price 800},
+                                  :invoice-item/description "DESCRIPTION1-2",
+                                  :invoice-item/precise-quantity 8},
+                                 {:invoice-item/product {:product/sku "EM2-2",
+                                                         :product/precise-price 700},
+                                  :invoice-item/description "DESCRIPTION2-2",
+                                  :invoice-item/precise-quantity 7},
+                                 {:invoice-item/product {:product/sku "EM3-2",
+                                                         :product/precise-price 600},
+                                  :invoice-item/description "DESCRIPTION3-2",
+                                  :invoice-item/precise-quantity 6}]})
+
 (def ok_vals '(""
                 "A0000"
                 "123456"
@@ -89,6 +144,107 @@
                 ""))
 
 (def ok-map (zipmap siigo-element-kws ok_vals))
+
+(def flattened-sample '(#dataico.services.nick.SiigoElement{:t-comprobante "",
+                                                            :consecutivo "A0000",
+                                                            :nro-docid "123456",
+                                                            :sucursal "",
+                                                            :centro-costo "",
+                                                            :fecha-elaboracion "24/12/2020",
+                                                            :nombre-contacto "COMPANY",
+                                                            :email-contacto "mail@mail.com",
+                                                            :cod-producto "EM",
+                                                            :descr-producto "DESCRIPTION",
+                                                            :id-vendedor "999999",
+                                                            :bodega "",
+                                                            :cantidad 1,
+                                                            :vr-unitario 100,
+                                                            :vr-descuento "",
+                                                            :base-aiu "",
+                                                            :imp-cargo "",
+                                                            :imp-cargo2 "",
+                                                            :imp-retencion "",
+                                                            :reteica-reteiva "",
+                                                            :tipo-fpago "1",
+                                                            :vr-fpago 10000,
+                                                            :medio-pago "47",
+                                                            :fecha-vencimiento "24/12/2020",
+                                                            :observaciones ""}
+                         #dataico.services.nick.SiigoElement{:t-comprobante "",
+                                                             :consecutivo "A0000",
+                                                             :nro-docid "123456",
+                                                             :sucursal "",
+                                                             :centro-costo "",
+                                                             :fecha-elaboracion "24/12/2020",
+                                                             :nombre-contacto "COMPANY",
+                                                             :email-contacto "mail@mail.com",
+                                                             :cod-producto "EM1",
+                                                             :descr-producto "DESCRIPTION1",
+                                                             :id-vendedor "999999",
+                                                             :bodega "",
+                                                             :cantidad 1,
+                                                             :vr-unitario 100,
+                                                             :vr-descuento "",
+                                                             :base-aiu "",
+                                                             :imp-cargo "",
+                                                             :imp-cargo2 "",
+                                                             :imp-retencion "",
+                                                             :reteica-reteiva "",
+                                                             :tipo-fpago "1",
+                                                             :vr-fpago 10000,
+                                                             :medio-pago "47",
+                                                             :fecha-vencimiento "24/12/2020",
+                                                             :observaciones ""}
+                         #dataico.services.nick.SiigoElement{:t-comprobante "",
+                                                             :consecutivo "A0000",
+                                                             :nro-docid "123456",
+                                                             :sucursal "",
+                                                             :centro-costo "",
+                                                             :fecha-elaboracion "24/12/2020",
+                                                             :nombre-contacto "COMPANY",
+                                                             :email-contacto "mail@mail.com",
+                                                             :cod-producto "EM2",
+                                                             :descr-producto "DESCRIPTION2",
+                                                             :id-vendedor "999999",
+                                                             :bodega "",
+                                                             :cantidad 2,
+                                                             :vr-unitario 200,
+                                                             :vr-descuento "",
+                                                             :base-aiu "",
+                                                             :imp-cargo "",
+                                                             :imp-cargo2 "",
+                                                             :imp-retencion "",
+                                                             :reteica-reteiva "",
+                                                             :tipo-fpago "1",
+                                                             :vr-fpago 10000,
+                                                             :medio-pago "47",
+                                                             :fecha-vencimiento "24/12/2020",
+                                                             :observaciones ""}
+                         #dataico.services.nick.SiigoElement{:t-comprobante "",
+                                                             :consecutivo "A0000",
+                                                             :nro-docid "123456",
+                                                             :sucursal "",
+                                                             :centro-costo "",
+                                                             :fecha-elaboracion "24/12/2020",
+                                                             :nombre-contacto "COMPANY",
+                                                             :email-contacto "mail@mail.com",
+                                                             :cod-producto "EM3",
+                                                             :descr-producto "DESCRIPTION3",
+                                                             :id-vendedor "999999",
+                                                             :bodega "",
+                                                             :cantidad 3,
+                                                             :vr-unitario 300,
+                                                             :vr-descuento "",
+                                                             :base-aiu "",
+                                                             :imp-cargo "",
+                                                             :imp-cargo2 "",
+                                                             :imp-retencion "",
+                                                             :reteica-reteiva "",
+                                                             :tipo-fpago "1",
+                                                             :vr-fpago 10000,
+                                                             :medio-pago "47",
+                                                             :fecha-vencimiento "24/12/2020",
+                                                             :observaciones ""}))
 
 (deftest date-parser-test
   (let [dateinst (Date.)
@@ -235,3 +391,20 @@
         (is (= (data/diff testdata ok-map) [nil, nil, ok-map]))
         ))
    ))
+
+(deftest siigo-flatten-invoice-test
+  (testing "Should flatten the right sequence"
+    (is (= (nick/siigo-flatten-invoice sample-map) flattened-sample))))
+
+(deftest dataico->siigo!-test
+  (let [invoices [sample-map sample-map1 sample-map2]
+        values (->> invoices
+                    (map nick/siigo-flatten-invoice)
+                    (map vals))
+        name (nick/dataico->siigo! invoices)
+        rows (->> (xl/load-workbook-from-file name)
+                  (xl/select-sheet "Hoja1")
+                  xl/row-seq)]
+    (testing "Should write correct data"
+      (is (= rows values))
+      )))
