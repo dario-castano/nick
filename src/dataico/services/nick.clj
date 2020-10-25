@@ -130,11 +130,30 @@
     ))
 
 (defn siigo-flatten-invoice
-  "Flattens an invoice"
+  "Flattens an individual invoice
+
+  Parameters
+  + invoice : An invoice (clojure.lang.PersistenHashMap)
+
+  Returns
+  A clojure.lang.LazySeq with SiigoElements inside
+
+  "
   [invoice]
   (map #(siigo-map invoice %) (:invoice/items invoice)))
 
 (defn dataico->siigo!
+  "Creates an Excel spreadsheet by using a vector of invoices
+
+  Parameters
+  + invoices : Vector of invoices (clojure.lang.PersistenHashMap)
+
+  Returns
+  Name of the new spreadsheet
+
+  NOTE: As side effect, creates an Excel workbook stored in the
+        sheets/ directory
+  "
   [invoices]
   (let [filename (str "sheets/" "out_" (.getTime (Date.)) ".xlsx")
         siigo-elem-seq (mapcat siigo-flatten-invoice invoices)
