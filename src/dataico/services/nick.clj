@@ -32,6 +32,11 @@
                          fecha-vencimiento
                          observaciones])
 
+(defn date-parser
+  "Parse a date"
+  [dateobj]
+  (.parse (SimpleDateFormat. "yyyy-MM-dd'T'HH:mm:ss.SSS") dateobj))
+
 (defn load-invoice
   "Loads an edn invoice from the file system
 
@@ -46,7 +51,7 @@
   (->> filename
        slurp
        (edn/read-string {:readers {'uuid str
-                                   'inst str}})))
+                                   'inst date-parser}})))
 
 (def invoice-names ["invoices/invoice1.edn"
                     "invoices/invoice2.edn"])
